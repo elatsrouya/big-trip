@@ -47,6 +47,6 @@ export function trip(reason) {
 
 export function usage() {
   const q = read();
-  return Object.keys(LIMITS).map(k => ({ sku: k, day: q.d[k] || 0, month: q.m[k] || 0, ...LIMITS[k] }));
+  return Object.keys(LIMITS).map(k => ({ sku: k, day: q.d[k] || 0, month: q.m[k] || 0 }));
 }
 export function offInfo() { const q = read(); return q.offUntil && Date.now() < q.offUntil ? q.offReason || 'off' : null; }
