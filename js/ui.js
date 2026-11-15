@@ -1,6 +1,7 @@
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const dot = col => `<span class="cdot" style="--c:${col}" aria-hidden="true"></span>`;
 export const icon = (n, cls = '') => `<i data-lucide="${n}" class="${cls}"></i>`;
 export function paintIcons(root = document) { window.lucide?.createIcons({ attrs: { class: 'i' }, root }); }
 

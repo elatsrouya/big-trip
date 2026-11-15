@@ -1,5 +1,5 @@
 import { S, save, replaceState, PM, C, onChange } from '../store.js';
-import { esc, icon, paintIcons, sheet, closeSheet, toast, $, $$ } from '../ui.js';
+import { esc, icon, paintIcons, sheet, closeSheet, toast, $, $$, dot } from '../ui.js';
 import { usage, offInfo } from '../quota.js';
 import { GOOGLE_KEY, LIMITS } from '../config.js';
 import { openPlace } from './place.js';
@@ -48,7 +48,7 @@ function migrate(o) { const n = { ...o }; n.route = (o.route || []).filter(r => 
 function saved() {
   const items = Object.entries(S.likes || {});
   const body = sheet(`<h2 style="margin-top:4px">שמורים</h2>${items.length ? `<div class="list">${items.map(([k, v]) => { const isP = k.startsWith('p:'); const p = isP ? PM[k.slice(2)] : PM[v.p];
-    return `<div class="li"><div class="grow" data-k="${esc(k)}" style="cursor:pointer"><b>${esc(isP ? p?.n : v.title)}</b><div class="xs muted">${p ? C[p.c].f + ' ' + esc(isP ? p.t : 'ליד ' + p.n) : ''}</div></div><button class="btn ghost sm" data-rm="${esc(k)}" aria-label="הסרה">${icon('x')}</button></div>`; }).join('')}</div>` : '<div class="empty">עוד לא שמרת כלום. שומרים עם הלב במצב הגלילה ובדפי היעדים.</div>'}`);
+    return `<div class="li"><div class="grow" data-k="${esc(k)}" style="cursor:pointer"><b>${esc(isP ? p?.n : v.title)}</b><div class="xs muted">${p ? dot(C[p.c].col) + ' ' + esc(isP ? p.t : 'ליד ' + p.n) : ''}</div></div><button class="btn ghost sm" data-rm="${esc(k)}" aria-label="הסרה">${icon('x')}</button></div>`; }).join('')}</div>` : '<div class="empty">עוד לא שמרת כלום. שומרים עם הלב במצב הגלילה ובדפי היעדים.</div>'}`);
   paintIcons(body);
   $$('[data-rm]', body).forEach(b => b.onclick = () => { delete S.likes[b.dataset.rm]; save(); b.closest('.li').remove(); });
   $$('[data-k]', body).forEach(d => d.onclick = () => { const k = d.dataset.k; const v = S.likes[k]; closeSheet(); setTimeout(() => k.startsWith('p:') ? openPlace(k.slice(2)) : v.url ? window.open(v.url, '_blank') : openPlace(v.p), 350); });

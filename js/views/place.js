@@ -1,5 +1,5 @@
 import { C, PM, REC, REC_CAT, EV, PAID, MONTHS, MONTHS_S, S, inRoute, addToRoute, save } from '../store.js';
-import { esc, icon, ph, fillPh, sheet, paintIcons, toast, $, $$ } from '../ui.js';
+import { esc, icon, ph, fillPh, sheet, paintIcons, toast, $, $$ , dot } from '../ui.js';
 import { placePhotos, wikiHe, wiki, nearby, gSearch, gPhoto, embedUrl, gmaps, hasGoogle } from '../media.js';
 import { go } from '../router.js';
 
@@ -21,7 +21,7 @@ export function openPlace(pid) {
     <div class="gal" id="pgal">${ph('', '4/3')}${photos.map(() => ph('', '4/3')).join('')}</div>
     <div class="row between" style="align-items:flex-start">
       <div class="grow"><h1 style="font-size:26px;margin:0;line-height:1.15">${esc(p.n)}</h1>
-        <div class="muted small">${c.f} ${esc(c.n)} · ${esc(p.t)}</div></div>
+        <div class="muted small">${dot(c.col)} ${esc(c.n)} · ${esc(p.t)}</div></div>
     </div>
     <div class="row wrap" style="gap:6px;margin:12px 0">
       <span class="tag">${icon('calendar-days')} מומלץ ${p.d} ימים</span>
@@ -48,7 +48,7 @@ export function openPlace(pid) {
     <h2>עוד בסביבה</h2>
     <div class="hscroll" id="pnear"><div class="muted small">טוען…</div></div>
 
-    <h2>${c.f} ${esc(c.n)}</h2>
+    <h2>${dot(c.col)} ${esc(c.n)}</h2>
     <div class="note small" style="margin-bottom:10px">${icon('stamp')} ${esc(c.visa)}</div>
     ${seasonBar(c.s, m)}
     <div class="xs muted" style="margin-top:6px">${esc(c.sn)}</div>
@@ -67,7 +67,7 @@ export function openPlace(pid) {
   wikiHe(p.en).then(w => { if (w?.text) $('#pwiki', body).innerHTML = `${esc(w.text.slice(0, 420))}${w.text.length > 420 ? '…' : ''} <a href="${w.url}" target="_blank" rel="noopener">ויקיפדיה</a>`; });
   nearby(p.lat, p.lon, 10000, 30).then(list => {
     const el = $('#pnear', body); if (!el) return;
-    if (!list?.length) { el.innerHTML = '<div class="muted small">לא נמצאו מקומות בסביבה.</div>'; return; }
+    if (!list?.length) { el.innerHTML = '<div class="muted small">לא נמצאו מקומות בסביבה</div>'; return; }
     el.innerHTML = list.slice(0, 14).map((x, i) => `<a class="pcard" href="${x.url}" target="_blank" rel="noopener" style="width:46%">${ph('', '1/1')}<h3 class="small" style="margin-top:6px">${esc(x.title)}</h3><div class="xs muted">${esc(x.desc)}</div></a>`).join('');
     $$('.ph', el).forEach((s, i) => fillPh(s, { src: list[i].img }));
   });

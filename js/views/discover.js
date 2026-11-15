@@ -1,5 +1,5 @@
 import { S, save, C, P, PM, REC, REC_CAT, inRoute, addToRoute, dist } from '../store.js';
-import { esc, icon, ph, fillPh, paintIcons, sheet, toast, $, $$ } from '../ui.js';
+import { esc, icon, ph, fillPh, paintIcons, sheet, toast, $, $$ , dot } from '../ui.js';
 import { placePhotos, wiki, nearby, gSearch, gPhoto, gmaps, hasGoogle, canGooglePhoto } from '../media.js';
 import { createMap } from '../maps.js';
 import { openPlace, recCard, placeQuery } from './place.js';
@@ -26,7 +26,7 @@ export function discover(el) {
     el.innerHTML = `<div class="view">
       <div class="vh"><div><h1>גלה</h1><div class="sub">יעדים, אטרקציות, אוכל ולינה</div></div>
         <button class="btn sm" id="dfeed">${icon('smartphone')} מצב גלילה</button></div>
-      <div class="chips" id="dc"><button class="chip ${!st.c ? 'on' : ''}" data-c="">כל המדינות</button>${Object.entries(C).map(([k, c]) => `<button class="chip ${st.c === k ? 'on' : ''}" data-c="${k}">${c.f} ${esc(c.n)}</button>`).join('')}</div>
+      <div class="chips" id="dc"><button class="chip ${!st.c ? 'on' : ''}" data-c="">כל המדינות</button>${Object.entries(C).map(([k, c]) => `<button class="chip ${st.c === k ? 'on' : ''}" data-c="${k}">${dot(c.col)} ${esc(c.n)}</button>`).join('')}</div>
       <div class="row" style="margin-top:10px;gap:8px">
         <select id="dp" class="grow" aria-label="יעד"><option value="">כל היעדים${st.c ? ' ב' + esc(C[st.c].n) : ''}</option>${places.map(p => `<option value="${p.id}" ${st.p === p.id ? 'selected' : ''}>${esc(p.n)}</option>`).join('')}</select>
         <div class="seg" style="flex:none"><button data-v="list" class="${st.view === 'list' ? 'on' : ''}" aria-label="רשימה">${icon('list')}</button><button data-v="map" class="${st.view === 'map' ? 'on' : ''}" aria-label="מפה">${icon('map')}</button></div>
@@ -54,14 +54,14 @@ export function discover(el) {
       places.forEach(p => pts.push({ lat: p.lat, lon: p.lon, label: p.n, col: C[p.c].col, on: () => openPlace(p.id) }));
       const cat = CATS.find(c => c.k === st.cat);
       const recs = REC.filter(r => (!st.c || r.c === st.c) && (st.cat === 'all' || cat.rec?.includes(r.k)));
-      if (st.cat === 'see') sections.push({ h: 'לא לפספס', html: `<div class="stack">${places.flatMap(p => p.h.map(h => `<div class="card flat"><div class="xs muted">${C[p.c].f} ${esc(p.n)}</div><h3 style="margin-top:4px">${esc(h)}</h3><a class="small" href="${gmaps(h.split(':')[0] + ', ' + p.en.replace(/_/g, ' '))}" target="_blank" rel="noopener">בגוגל מפות</a></div>`)).join('')}</div>` });
+      if (st.cat === 'see') sections.push({ h: 'לא לפספס', html: `<div class="stack">${places.flatMap(p => p.h.map(h => `<div class="card flat"><div class="xs muted">${dot(C[p.c].col)} ${esc(p.n)}</div><h3 style="margin-top:4px">${esc(h)}</h3><a class="small" href="${gmaps(h.split(':')[0] + ', ' + p.en.replace(/_/g, ' '))}" target="_blank" rel="noopener">בגוגל מפות</a></div>`)).join('')}</div>` });
       if (recs.length) sections.push({ h: 'המלצות', html: `<div class="stack">${recs.map(recCard).join('')}</div>` });
       if (!recs.length && st.cat !== 'all' && st.cat !== 'see') sections.push({ h: '', html: `<div class="card empty">בוחרים יעד למעלה כדי לראות ${esc(cat.n)} חיים מגוגל ומוויקיפדיה.</div>` });
       box.innerHTML = sections.map(s => `${s.h ? `<h2>${esc(s.h)}</h2>` : ''}${s.html}`).join('');
       paintIcons(box); fillCards(box);
     } else {
       const p = PM[st.p];
-      box.innerHTML = `<div class="card next" id="dplace" style="margin-top:12px">${ph('', '1/1')}<div class="grow"><div class="xs muted">${C[p.c].f} ${esc(C[p.c].n)}</div><h3 style="font-size:19px">${esc(p.n)}</h3><div class="small muted">${esc(p.t)}</div></div>${icon('chevron-left', 'chev')}</div><div id="dsecs"></div>`;
+      box.innerHTML = `<div class="card next" id="dplace" style="margin-top:12px">${ph('', '1/1')}<div class="grow"><div class="xs muted">${dot(C[p.c].col)} ${esc(C[p.c].n)}</div><h3 style="font-size:19px">${esc(p.n)}</h3><div class="small muted">${esc(p.t)}</div></div>${icon('chevron-left', 'chev')}</div><div id="dsecs"></div>`;
       paintIcons(box); fillPhFor($('#dplace .ph', box), p); $('#dplace', box).onclick = () => openPlace(p.id);
       const secs = $('#dsecs', box);
       const cats = st.cat === 'all' ? CATS.slice(1) : [CATS.find(c => c.k === st.cat)];
@@ -106,7 +106,7 @@ export function discover(el) {
 }
 
 export function fillPhFor(slot, p) { const im = placePhotos(p, 500)[0]; if (im) fillPh(slot, im); else wiki(p.en).then(w => fillPh(slot, w?.img ? { src: w.img, credit: 'Wikipedia' } : null)); }
-const placeCard = p => `<a class="pcard" style="width:auto;max-width:none" data-pc="${p.id}">${ph('', '1/1')}<h3 style="margin-top:8px">${esc(p.n)}${inRoute(p.id) ? ` ${icon('check', 'ok')}` : ''}</h3><div class="xs muted">${C[p.c].f} ${esc(p.t)}</div></a>`;
+const placeCard = p => `<a class="pcard" style="width:auto;max-width:none" data-pc="${p.id}">${ph('', '1/1')}<h3 style="margin-top:8px">${esc(p.n)}${inRoute(p.id) ? ` ${icon('check', 'ok')}` : ''}</h3><div class="xs muted">${dot(C[p.c].col)} ${esc(p.t)}</div></a>`;
 const liveCard = (x, i) => `<a class="pcard lcard" data-i="${i}" href="${x.url}" target="_blank" rel="noopener" style="width:58%">${ph('', '4/3')}<h3 class="small" style="margin-top:6px">${esc(x.title)}</h3><div class="xs muted">${esc(x.src === 'google' ? (x.addr || '').split(',').slice(0, 2).join(',') : x.desc)} · ${x.src === 'google' ? 'Google' : 'Wikipedia'}</div></a>`;
 
 /* ---------- TikTok-style feed ---------- */
@@ -122,9 +122,9 @@ export function feed(el) {
     if (loading || !alive) return; loading = true;
     for (let n = 0; n < 3 && k < order.length; n++, k++) {
       const p = order[k];
-      addSlide({ kind: 'place', p, title: p.n, sub: `${C[p.c].f} ${C[p.c].n}`, text: p.t + '. ' + p.x, img: placePhotos(p, 1200)[0] || null, wikiTitle: p.en });
+      addSlide({ kind: 'place', p, title: p.n, sub: `${dot(C[p.c].col)} ${C[p.c].n}`, text: p.t + '. ' + p.x, img: placePhotos(p, 1200)[0] || null, wikiTitle: p.en });
       const nb = await nearby(p.lat, p.lon, 12000, 20); if (!alive) return;
-      (nb || []).filter(x => x.img).sort(() => Math.random() - .5).slice(0, 2).forEach(x => addSlide({ kind: 'spot', p, title: x.title, sub: `ליד ${p.n} · ${C[p.c].f}`, text: x.desc, img: { src: x.img.replace(/\/\d+px-/, '/1200px-'), credit: 'Wikipedia', href: x.url }, url: x.url }));
+      (nb || []).filter(x => x.img).sort(() => Math.random() - .5).slice(0, 2).forEach(x => addSlide({ kind: 'spot', p, title: x.title, sub: `ליד ${p.n} · ${dot(C[p.c].col)}`, text: x.desc, img: { src: x.img.replace(/\/\d+px-/, '/1200px-'), credit: 'Wikipedia', href: x.url }, url: x.url }));
     }
     loading = false;
   }

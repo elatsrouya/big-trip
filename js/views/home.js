@@ -1,5 +1,5 @@
 import { S, save, C, routeInfo, totalDays, routeCountries, daysLeft, startD, dlong, nextStop, currentStop, budget, fmt, warnings, dstr, onChange } from '../store.js';
-import { esc, icon, ph, fillPh, paintIcons, sheet, closeSheet, $, toast } from '../ui.js';
+import { esc, icon, ph, fillPh, paintIcons, sheet, closeSheet, $, toast , dot } from '../ui.js';
 import { placePhotos, wiki } from '../media.js';
 import { openPlace } from './place.js';
 import { go } from '../router.js';
@@ -24,29 +24,26 @@ export function home(el) {
         <div class="bg" id="hbg"></div>
         ${s ? (left > 0 ? `<div class="lbl">עוד</div><div class="big num">${fmt(left)}</div><div class="lbl">ימים לטיסה</div>`
           : cur ? `<div class="lbl">יום ${Math.round((new Date() - cur.arr) / 864e5) + 1} ב${esc(cur.place.n)}</div><div class="big">בדרכים</div>` : `<div class="big">בדרכים</div>`)
-        : `<div class="big" style="font-size:40px">מתי טסים?</div><div class="lbl">קובעים תאריך משוער, וכל השאר מתעדכן לפיו</div>
+        : `<div class="big" style="font-size:44px">מתי טסים?</div><div class="lbl">תאריך משוער מספיק. הספירה, העונות והמשימות יתעדכנו לפיו</div>
            <button class="btn" id="hdate" style="margin-top:14px;align-self:flex-start">${icon('calendar-plus')} לבחור תאריך</button>`}
       </section>
 
-      <div class="stats">
-        <div class="stat"><b class="num">${td}</b><span>ימי טיול</span></div>
-        <div class="stat"><b class="num">${cs.length}</b><span>מדינות</span><div class="xs" style="margin-top:2px">${cs.map(c => C[c].f).join(' ')}</div></div>
-        <div class="stat"><b class="num">${ri.length}</b><span>יעדים</span></div>
-      </div>
+      ${ri.length ? `<div class="summary"><span><b class="num">${td}</b> ימים</span><span><b class="num">${cs.length}</b> מדינות</span><span><b class="num">${ri.length}</b> יעדים</span></div>
+      <div class="strip" id="hstrip">${ri.map((r, i) => `<button class="st" data-p="${r.p}">${ph('', '1/1')}<div class="k"><b class="num">${i + 1}</b></div><div class="nm">${esc(r.place.n)}</div><div class="dt">${r.arr ? dstr(r.arr) + ' · ' : ''}${r.d} ימים</div></button>`).join('')}</div>` : ''}
 
       ${nx ? `<h2>${cur ? 'איפה אני עכשיו' : 'היעד הקרוב'}</h2>
-      <div class="card next" id="hnext">${ph('', '1/1')}<div class="grow">
-        <div class="xs muted">${C[nx.place.c].f} ${esc(C[nx.place.c].n)}${nx.arr ? ' · ' + dstr(nx.arr) : ''} · ${nx.d} ימים</div>
-        <h3 style="font-size:19px;margin:2px 0">${esc(nx.place.n)}</h3><div class="small muted">${esc(nx.place.t)}</div></div>${icon('chevron-left', 'chev')}</div>`
-      : `<h2>היעד הקרוב</h2><div class="card empty">המסלול עוד ריק.<br><button class="btn" style="margin-top:12px" id="hstart">${icon('map')} לבנות מסלול</button></div>`}
+      <button class="rowlink" id="hnext" style="border-top:0;padding-top:0">${ph('', '1/1').replace('class="ph ', 'class="ph th ')}<div class="grow">
+        <div class="xs muted">${dot(C[nx.place.c].col)} ${esc(C[nx.place.c].n)}${nx.arr ? ' · ' + dlong(nx.arr) : ''} · ${nx.d} ימים</div>
+        <h3 style="font-size:18px;margin:4px 0">${esc(nx.place.n)}</h3><div class="small muted">${esc(nx.place.t)}</div></div>${icon('chevron-left', 'chev')}</button>`
+      : `<div class="card empty" style="margin-top:16px">המסלול עוד ריק<br><button class="btn" style="margin-top:12px" id="hstart">${icon('map')} לבנות מסלול</button></div>`}
 
       <h2>חיסכון</h2>
       <div class="card" id="hsave" style="cursor:pointer">
-        <div class="row between"><div><div class="xs muted">חסכתי</div><b style="font-size:26px" class="num">₪${fmt(S.saved)}</b></div>
-          <div style="text-align:left"><div class="xs muted">היעד</div><b style="font-size:18px" class="num">₪${fmt(S.goal)}</b></div></div>
+        <div class="row between"><div><div class="xs muted">חסכתי</div><b style="font-size:28px;font-weight:500" class="num">₪${fmt(S.saved)}</b></div>
+          <div style="text-align:left"><div class="xs muted">היעד</div><b style="font-size:16px;font-weight:500" class="num">₪${fmt(S.goal)}</b></div></div>
         <div class="bar" style="margin:12px 0 10px"><i style="width:${pct}%"></i></div>
         <div class="row between small"><span class="muted">${Math.round(pct)}% מהיעד</span>${perMonth ? `<span>צריך לחסוך <b class="num">₪${fmt(perMonth)}</b> בחודש</span>` : ''}</div>
-        ${td ? `<div class="note ${b.total > S.goal ? 'warn' : 'ok'}" style="margin-top:12px">התקציב המשוער למסלול: <b class="num">₪${fmt(b.total)}</b>. ${b.total > S.goal ? 'יותר מהיעד ב־₪' + fmt(b.total - S.goal) + '.' : 'בתוך היעד, עם רזרבה של ₪' + fmt(S.goal - b.total) + '.'}</div>` : ''}
+        ${td ? `<div class="row between small" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted">תקציב משוער למסלול</span><span><b class="num">₪${fmt(b.total)}</b> <span class="tag ${b.total > S.goal ? 'warn' : 'ok'}">${b.total > S.goal ? 'חסרים ₪' + fmt(b.total - S.goal) : 'רזרבה ₪' + fmt(S.goal - b.total)}</span></span></div>` : ''}
       </div>
 
       ${due ? `<h2>המשימה הבאה</h2><button class="li card" id="htask" style="border-radius:var(--r)">${icon('list-checks')}<div class="grow"><b>${esc(due.t.t)}</b><div class="xs ${due.w.days < 0 ? '' : 'muted'}" style="${due.w.days < 0 ? 'color:var(--bad)' : ''}">${esc(due.w.label)}</div></div>${icon('chevron-left', 'chev')}</button>` : ''}
@@ -59,7 +56,8 @@ export function home(el) {
     const photos = placePhotos(hp, 1200);
     const putHero = img => { if (!img) return; const bg = $('#hbg', el); if (!bg) return; bg.innerHTML = `<img src="${img.src}" alt="" referrerpolicy="no-referrer">`; if (img.credit) { const c = document.createElement('span'); c.className = 'credit'; c.textContent = img.credit; $('#hhero', el).appendChild(c); } };
     if (photos[0]) putHero(photos[0]); else wiki(hp.en).then(w => w?.img && putHero({ src: w.img, credit: 'Wikipedia' }));
-    if (nx) { const im = placePhotos(nx.place, 300)[0]; if (im) fillPh($('#hnext .ph', el), { src: im.src }); else wiki(nx.place.en).then(w => fillPh($('#hnext .ph', el), w?.img ? { src: w.img } : null)); $('#hnext', el).onclick = () => openPlace(nx.place.id); }
+    if (nx) { thumb($('#hnext .ph', el), nx.place); $('#hnext', el).onclick = () => openPlace(nx.place.id); }
+    el.querySelectorAll('#hstrip .st').forEach(b => { const p = ri.find(r => r.p === b.dataset.p).place; thumb(b.querySelector('.ph'), p); b.onclick = () => openPlace(p.id); });
     $('#hstart', el) && ($('#hstart', el).onclick = () => go('route'));
     $('#hdate', el) && ($('#hdate', el).onclick = editTrip);
     $('#hset', el).onclick = editTrip;
@@ -69,6 +67,8 @@ export function home(el) {
   draw();
   return onChange(draw);
 }
+
+function thumb(slot, p) { const im = placePhotos(p, 300)[0]; if (im) fillPh(slot, { src: im.src }); else wiki(p.en).then(w => fillPh(slot, w?.img ? { src: w.img } : null)); }
 
 export function editTrip() {
   const body = sheet(`<h2 style="margin-top:4px">פרטי הטיול</h2>

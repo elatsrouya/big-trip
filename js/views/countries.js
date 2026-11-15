@@ -1,5 +1,5 @@
 import { C, P, EV, BLOCKED, COST, STYLE_M, S, ILS, fmt, routeCountries, MONTHS } from '../store.js';
-import { esc, icon, ph, fillPh, paintIcons, $, $$ } from '../ui.js';
+import { esc, icon, ph, fillPh, paintIcons, $, $$ , dot } from '../ui.js';
 import { wiki, wikiHe } from '../media.js';
 import { openPlace, seasonBar } from './place.js';
 import { fillPhFor } from './discover.js';
@@ -16,10 +16,10 @@ export function countries(el, arg) {
   el.innerHTML = `<div class="view"><div class="vh"><div><h1>מדינות</h1><div class="sub">${Object.keys(C).length} מדינות · ${mine.length} במסלול שלך</div></div></div>
     <div class="stack">${keys.map(k => { const c = C[k]; return `<button class="card ccard" data-c="${k}">
       ${ph('', '16/7')}
-      <div class="row between" style="margin-top:12px"><h3 style="font-size:19px;margin:0">${c.f} ${esc(c.n)}</h3>${mine.includes(k) ? '<span class="tag acc">במסלול</span>' : ''}</div>
+      <div class="row between" style="margin-top:12px"><h3 style="font-size:19px;margin:0">${dot(c.col)} ${esc(c.n)}</h3>${mine.includes(k) ? '<span class="tag acc">במסלול</span>' : ''}</div>
       <div class="xs muted" style="margin:2px 0 10px">כ־₪${fmt(perDay(k))} ליום · ${c.visaDays ? `${c.visaDays} יום בלי ויזה` : 'צריך ויזה מראש'} · עכשיו: ${['לא עונה', 'עונה סבירה', 'עונה מעולה'][c.s[m]]}</div>
       ${seasonBar(c.s, m)}</button>`; }).join('')}</div>
-    <h2>לא נכנסים עם דרכון ישראלי</h2><div class="list">${BLOCKED.map(b => `<div class="li"><span style="font-size:20px">${b[0]}</span><div class="grow"><b>${esc(b[1])}</b><div class="xs muted">${esc(b[2])}</div></div></div>`).join('')}</div>
+    <h2>לא נכנסים עם דרכון ישראלי</h2><div class="list">${BLOCKED.map(b => `<div class="li">${dot('var(--ink-3)')}<div class="grow"><b>${esc(b[1])}</b><div class="xs muted">${esc(b[2])}</div></div></div>`).join('')}</div>
   </div>`;
   paintIcons(el);
   $$('.ccard', el).forEach(b => { b.onclick = () => go('countries/' + b.dataset.c); wiki(wname(b.dataset.c)).then(w => fillPh($('.ph', b), w?.img ? { src: w.img, credit: 'Wikipedia' } : null)); });
@@ -28,7 +28,7 @@ export function countries(el, arg) {
 function country(el, k) {
   const c = C[k]; const m = new Date().getMonth(); const ps = P.filter(p => p.c === k); const evs = EV.filter(e => e.c === k);
   el.innerHTML = `<div class="view">
-    <div class="vh"><button class="btn sec icon" id="cb" aria-label="חזרה">${icon('arrow-right')}</button><div class="grow"><h1>${c.f} ${esc(c.n)}</h1></div></div>
+    <div class="vh"><button class="btn sec icon" id="cb" aria-label="חזרה">${icon('arrow-right')}</button><div class="grow"><h1>${dot(c.col)} ${esc(c.n)}</h1></div></div>
     ${ph('', '16/9')}
     <p id="ov" dir="auto" class="muted" style="margin-top:14px">טוען סקירה…</p>
     <div class="facts" style="margin:14px 0">
@@ -50,7 +50,7 @@ function country(el, k) {
   paintIcons(el);
   $('#cb', el).onclick = () => go('countries');
   $$('[data-pc]', el).forEach(a => { fillPhFor($('.ph', a), P.find(p => p.id === a.dataset.pc)); a.onclick = () => openPlace(a.dataset.pc); });
-  const put = (id, w, n = 700) => { const e = $('#' + id, el); if (!e) return; e.innerHTML = w?.text ? `${esc(w.text.slice(0, n))}${w.text.length > n ? '…' : ''} <a href="${w.url}" target="_blank" rel="noopener">להמשך</a>` : 'לא נמצא מידע.'; };
+  const put = (id, w, n = 700) => { const e = $('#' + id, el); if (!e) return; e.innerHTML = w?.text ? `${esc(w.text.slice(0, n))}${w.text.length > n ? '…' : ''} <a href="${w.url}" target="_blank" rel="noopener">להמשך</a>` : 'לא נמצא מידע'; };
   const heOr = async t => (await wikiHe(t)) || (await wiki(t));
   wiki(wname(k)).then(w => fillPh($('.view > .ph', el), w?.img ? { src: w.img, credit: 'Wikipedia', href: w.url } : null));
   heOr(wname(k)).then(w => put('ov', w, 600));

@@ -1,5 +1,5 @@
 import { S, save, C, P, PM, REC, routeInfo, totalDays, routeCountries, legs, setDays, removeStop, moveStop, suggestOrder, addToRoute, inRoute, dstr, fmt, ILS, warnings, onChange } from '../store.js';
-import { esc, icon, ph, fillPh, paintIcons, sheet, closeSheet, toast, $, $$ } from '../ui.js';
+import { esc, icon, ph, fillPh, paintIcons, sheet, closeSheet, toast, $, $$ , dot } from '../ui.js';
 import { createMap } from '../maps.js';
 import { placePhotos, wiki } from '../media.js';
 import { openPlace } from './place.js';
@@ -22,7 +22,7 @@ export function routeView(el) {
         ${ri.length > 1 ? (editing ? `<div class="row" style="gap:6px"><button class="btn sec sm" id="rsug">${icon('wand-sparkles')} הצעת סדר</button><button class="btn sm" id="redit">סיום</button></div>`
           : `<button class="btn sec sm" id="redit">${icon('arrow-up-down')} סידור</button>`) : ''}</div>
       ${editing ? '<div class="note small" style="margin-bottom:10px">גוררים את היעדים מהידית, או משתמשים בחיצים. "הצעת סדר" מסדרת לפי מרחקים ומשאירה את היעד הראשון במקומו.</div>' : ''}
-      ${ri.length ? `<div class="list" id="rlist">${ri.map((r, i) => stopRow(r, i, L[i - 1])).join('')}</div>` : `<div class="card empty">${icon('map-pin-plus')}<p>מוסיפים יעדים מהמפה, מדף "גלה" או מהכפתור למעלה.</p><button class="btn" id="radd2">הוספת יעד</button></div>`}
+      ${ri.length ? `<div class="list" id="rlist">${ri.map((r, i) => stopRow(r, i, L[i - 1])).join('')}</div>` : `<div class="card empty">${icon('map-pin-plus')}<p>מוסיפים יעדים מהמפה, מדף "גלה" או מהכפתור למעלה</p><button class="btn" id="radd2">הוספת יעד</button></div>`}
       ${L.length ? `<div class="note small" style="margin-top:10px">${icon('route')} תחבורה בין היעדים: כ־₪${fmt(L.reduce((a, x) => a + x.usd, 0) * ILS())} (הערכה)</div>` : ''}
       ${w.length ? `<div class="stack" style="margin-top:12px">${w.map(x => `<div class="note warn small">${esc(x)}</div>`).join('')}</div>` : ''}
     </div>`;
@@ -77,7 +77,7 @@ function stopRow(r, i, leg) {
     ${editing ? `<span class="handle" aria-label="גרירה">${icon('grip-vertical')}</span>` : `<span class="n" style="background:${c.col}">${i + 1}</span>`}
     ${ph('th', '1/1')}
     <div class="grow" data-open style="cursor:pointer"><b>${esc(r.place.n)}</b>
-      <div class="xs muted">${c.f} ${esc(c.n)}${r.arr ? ' · ' + dstr(r.arr) : ''}${sc != null ? ` · <span class="s${sc}t">${['לא עונה', 'עונה סבירה', 'עונה מעולה'][sc]}</span>` : ''}</div></div>
+      <div class="xs muted">${dot(c.col)} ${esc(c.n)}${r.arr ? ' · ' + dstr(r.arr) : ''}${sc != null ? ` · <span class="s${sc}t">${['לא עונה', 'עונה סבירה', 'עונה מעולה'][sc]}</span>` : ''}</div></div>
     ${editing ? `<div class="dd"><button class="up" aria-label="למעלה">${icon('chevron-up')}</button><button class="down" aria-label="למטה">${icon('chevron-down')}</button><button class="rm" aria-label="הסרה">${icon('trash-2')}</button></div>`
       : `<div class="dd"><button class="dplus" aria-label="יום נוסף">${icon('plus')}</button><b class="num" style="min-width:22px;text-align:center">${r.d}</b><button class="dminus" aria-label="יום פחות">${icon('minus')}</button></div>`}
   </div>`;
@@ -104,11 +104,11 @@ export function picker() {
   let cf = '', q = '';
   const body = sheet(`<h2 style="margin-top:4px">הוספת יעד</h2>
     <input id="pq" type="search" placeholder="חיפוש יעד" autocomplete="off">
-    <div class="chips" style="margin-top:10px" id="pc"><button class="chip on" data-c="">הכול</button>${Object.entries(C).map(([k, c]) => `<button class="chip" data-c="${k}">${c.f} ${esc(c.n)}</button>`).join('')}</div>
+    <div class="chips" style="margin-top:10px" id="pc"><button class="chip on" data-c="">הכול</button>${Object.entries(C).map(([k, c]) => `<button class="chip" data-c="${k}">${dot(c.col)} ${esc(c.n)}</button>`).join('')}</div>
     <div class="list" id="pl" style="margin-top:10px"></div>`);
   const list = () => {
     const items = P.filter(p => (!cf || p.c === cf) && (!q || (p.n + ' ' + p.en + ' ' + p.t).toLowerCase().includes(q)));
-    $('#pl', body).innerHTML = items.map(p => `<div class="li" data-p="${p.id}"><div class="grow"><b>${esc(p.n)}</b><div class="xs muted">${C[p.c].f} ${esc(C[p.c].n)} · ${esc(p.t)}</div></div>
+    $('#pl', body).innerHTML = items.map(p => `<div class="li" data-p="${p.id}"><div class="grow"><b>${esc(p.n)}</b><div class="xs muted">${dot(C[p.c].col)} ${esc(C[p.c].n)} · ${esc(p.t)}</div></div>
       <button class="btn sm ${inRoute(p.id) ? 'sec' : ''}" data-add="${p.id}">${inRoute(p.id) ? 'שוב' : 'הוספה'}</button></div>`).join('') || '<div class="empty">לא נמצא</div>';
     $$('[data-add]', body).forEach(b => b.onclick = e => { e.stopPropagation(); addToRoute(b.dataset.add); toast(`${PM[b.dataset.add].n} נוסף למסלול`); list(); });
     $$('.li[data-p]', body).forEach(r => r.onclick = () => { closeSheet(); setTimeout(() => openPlace(r.dataset.p), 350); });
