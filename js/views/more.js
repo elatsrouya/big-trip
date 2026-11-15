@@ -51,9 +51,9 @@ function quotaSheet() {
   const rows = usage().map(u => { const L = LIMITS[u.sku], F = FREE[u.sku];
     return `<div class="card" style="margin-bottom:12px">
       <div class="row between"><b>${NAMES[u.sku]}</b><span class="xs muted num">חינם עד ${F.toLocaleString('en')} בחודש</span></div>
-      <div class="row between small" style="margin-top:12px"><span>היום</span><span class="num">${u.day} / ${L.day}</span></div>
+      <div class="row between small" style="margin-top:12px"><span>היום</span><span class="num" dir="ltr">${u.day} / ${L.day}</span></div>
       <div class="bar" style="height:6px;margin-top:4px"><i style="width:${pct(u.day, L.day)}%"></i></div>
-      <div class="row between small" style="margin-top:12px"><span>החודש</span><span class="num">${u.month} / ${L.month}</span></div>
+      <div class="row between small" style="margin-top:12px"><span>החודש</span><span class="num" dir="ltr">${u.month} / ${L.month}</span></div>
       <div class="bar" style="height:6px;margin-top:4px"><i style="width:${pct(u.month, L.month)}%"></i></div>
       <div class="xs muted" style="margin-top:8px">${Math.round(pct(u.month, F))}% מהמכסה החינמית של גוגל · התקרה במכשיר ${Math.round(L.month / F * 100)}% ממנה</div>
     </div>`; }).join('');
