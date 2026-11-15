@@ -11,4 +11,7 @@ export const LIMITS = {
   photo:  { day: 15,  month: 400 },
 };
 
+// Google's free monthly caps per SKU (Nov 2026 pricing), shown on the usage screen.
+export const FREE = { map: 10000, details: 5000, search: 5000, photo: 1000 };
+
 export const SITE_NAME = 'הטיול הגדול';

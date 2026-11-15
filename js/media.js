@@ -12,14 +12,20 @@ const inflight = new Map();
 async function cached(k, fn, days) { const v = cget(k); if (v !== undefined) return v; if (inflight.has(k)) return inflight.get(k); const p = fn().then(r => { cset(k, r, days); inflight.delete(k); return r; }).catch(() => { inflight.delete(k); return null; }); inflight.set(k, p); return p; }
 
 /* ---------- Wikimedia Commons ---------- */
-export const commons = (file, w = 900) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${w}`;
+// Wikimedia serves only these thumbnail widths; any other width gets a 429 (black box).
+const STEPS = [120, 250, 330, 500, 960, 1280, 1920];
+export const step = w => STEPS.find(s => s >= w) || 1920;
+// Snap a upload.wikimedia.org thumbnail URL to a standard width.
+export const wthumb = (u, w = 960) => u ? u.replace(/\/(\d+)px-/, `/${step(w)}px-`) : u;
+export const commons = (file, w = 960) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${step(w)}`;
 export const commonsPage = file => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, '_'))}`;
 export function placePhotos(p, w) {
-  return (PH[p.id] || []).map(([f, a, l]) => ({ src: commons(f, w), credit: `© ${a} · ${l}`, href: commonsPage(f) }));
+  // fb: a smaller standard size to try if the first one fails.
+  return (PH[p.id] || []).map(([f, a, l]) => ({ src: commons(f, w), fb: commons(f, 500), credit: `© ${a} · ${l}`, href: commonsPage(f) }));
 }
 
 /* ---------- Wikipedia ---------- */
-const big = (u, w = 900) => u ? u.replace(/\/(\d+)px-/, `/${w}px-`) : u;
+const big = (u, w = 960) => wthumb(u, w);
 export function wiki(title, lang = 'en') {
   return cached(`w:${lang}:${title}`, async () => {
     const r = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}?redirect=true`);
@@ -38,7 +44,7 @@ export function wikiHe(enTitle) {
 // Notable places near a point, each with a photo.
 export function nearby(lat, lon, radius = 10000, limit = 40) {
   return cached(`nb:${lat.toFixed(2)},${lon.toFixed(2)},${radius}`, async () => {
-    const u = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${lat}|${lon}&ggsradius=${radius}&ggslimit=${limit}&prop=pageimages|coordinates|description&piprop=thumbnail&pithumbsize=800&pilicense=any`;
+    const u = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${lat}|${lon}&ggsradius=${radius}&ggslimit=${limit}&prop=pageimages|coordinates|description&piprop=thumbnail&pithumbsize=500&pilicense=any`;
     const j = await (await fetch(u)).json();
     return Object.values(j.query?.pages || {}).filter(p => p.thumbnail && !/^(List|Districts?|Template)/.test(p.title))
       .map(p => ({ id: 'w' + p.pageid, title: p.title, desc: p.description || '', img: p.thumbnail.source, lat: p.coordinates?.[0]?.lat, lon: p.coordinates?.[0]?.lon, url: `https://en.m.wikipedia.org/?curid=${p.pageid}` }));

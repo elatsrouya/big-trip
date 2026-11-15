@@ -55,7 +55,7 @@ export function home(el) {
     // hero photo: next stop, or a default destination
     const hp = nx?.place || { id: 'lpq', en: 'Luang_Prabang' };
     const photos = placePhotos(hp, 1200);
-    const putHero = img => { if (!img) return; const bg = $('#hbg', el); if (!bg) return; bg.innerHTML = `<img src="${img.src}" alt="" referrerpolicy="no-referrer">`; if (img.credit) { const c = document.createElement('span'); c.className = 'credit'; c.textContent = img.credit; $('#hhero', el).appendChild(c); } };
+    const putHero = img => { if (!img) return; const bg = $('#hbg', el); if (!bg) return; bg.innerHTML = `<img src="${img.src}" alt="" referrerpolicy="no-referrer">`; const im = bg.firstChild; im.onerror = () => { if (img.fb && im.src !== img.fb) im.src = img.fb; else im.remove(); }; if (img.credit) { const c = document.createElement('span'); c.className = 'credit'; c.textContent = img.credit; $('#hhero', el).appendChild(c); } };
     if (photos[0]) putHero(photos[0]); else wiki(hp.en).then(w => w?.img && putHero({ src: w.img, credit: 'Wikipedia' }));
     if (nx) { thumb($('#hnext .ph', el), nx.place); $('#hnext', el).onclick = () => openPlace(nx.place.id); }
     el.querySelectorAll('#hstrip .st').forEach(b => { const p = ri.find(r => r.p === b.dataset.p).place; thumb(b.querySelector('.ph'), p); b.onclick = () => openPlace(p.id); });
@@ -69,7 +69,7 @@ export function home(el) {
   return onChange(draw);
 }
 
-function thumb(slot, p) { const im = placePhotos(p, 300)[0]; if (im) fillPh(slot, { src: im.src }); else wiki(p.en).then(w => fillPh(slot, w?.img ? { src: w.img } : null)); }
+function thumb(slot, p) { const im = placePhotos(p, 300)[0]; if (im) fillPh(slot, { src: im.src, fb: im.fb }); else wiki(p.en).then(w => fillPh(slot, w?.img ? { src: w.img } : null)); }
 
 export function editTrip() {
   const body = sheet(`<h2 style="margin-top:4px">פרטי הטיול</h2>

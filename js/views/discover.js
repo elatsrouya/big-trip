@@ -1,6 +1,6 @@
 import { S, save, C, P, PM, REC, REC_CAT, inRoute, addToRoute, dist } from '../store.js';
 import { esc, icon, ph, fillPh, paintIcons, sheet, toast, $, $$ , dot } from '../ui.js';
-import { placePhotos, wiki, nearby, gSearch, gPhoto, gmaps, hasGoogle, canGooglePhoto } from '../media.js';
+import { placePhotos, wiki, nearby, wthumb, gSearch, gPhoto, gmaps, hasGoogle, canGooglePhoto } from '../media.js';
 import { createMap } from '../maps.js';
 import { openPlace, recCard, placeQuery } from './place.js';
 import { go } from '../router.js';
@@ -124,7 +124,7 @@ export function feed(el) {
       const p = order[k];
       addSlide({ kind: 'place', p, title: p.n, sub: `${dot(C[p.c].col)} ${C[p.c].n}`, text: p.t + '. ' + p.x, img: placePhotos(p, 1200)[0] || null, wikiTitle: p.en });
       const nb = await nearby(p.lat, p.lon, 12000, 20); if (!alive) return;
-      (nb || []).filter(x => x.img).sort(() => Math.random() - .5).slice(0, 2).forEach(x => addSlide({ kind: 'spot', p, title: x.title, sub: `ליד ${p.n} · ${dot(C[p.c].col)}`, text: x.desc, img: { src: x.img.replace(/\/\d+px-/, '/1200px-'), credit: 'Wikipedia', href: x.url }, url: x.url }));
+      (nb || []).filter(x => x.img).sort(() => Math.random() - .5).slice(0, 2).forEach(x => addSlide({ kind: 'spot', p, title: x.title, sub: `ליד ${p.n} · ${dot(C[p.c].col)}`, text: x.desc, img: { src: wthumb(x.img, 1280), fb: x.img, credit: 'Wikipedia', href: x.url }, url: x.url }));
     }
     loading = false;
   }
@@ -136,7 +136,7 @@ export function feed(el) {
       <div class="side"><button data-a="like" class="${S.likes[likeKey] ? 'liked' : ''}" aria-label="שמירה">${icon('heart')}<span>שמירה</span></button>
       <button data-a="add" aria-label="הוספה למסלול">${icon(inRoute(s.p.id) ? 'check' : 'plus')}<span>${inRoute(s.p.id) ? 'במסלול' : 'למסלול'}</span></button></div>`;
     box.appendChild(d); paintIcons(d);
-    if (s.img) fillPh($('.ph', d), s.img); else wiki(s.wikiTitle).then(w => fillPh($('.ph', d), w?.img ? { src: w.img.replace(/\/\d+px-/, '/1200px-'), credit: 'Wikipedia' } : null));
+    if (s.img) fillPh($('.ph', d), s.img); else wiki(s.wikiTitle).then(w => fillPh($('.ph', d), w?.img ? { src: wthumb(w.img, 1280), fb: w.img, credit: 'Wikipedia' } : null));
     $('[data-a=open]', d).onclick = () => s.kind === 'place' ? openPlace(s.p.id) : window.open(s.url, '_blank');
     $('[data-a=like]', d).onclick = e => { const b = e.currentTarget; if (S.likes[likeKey]) delete S.likes[likeKey]; else S.likes[likeKey] = { t: Date.now(), title: s.title, p: s.p.id, url: s.url || '' }; save(true); b.classList.toggle('liked', !!S.likes[likeKey]); toast(S.likes[likeKey] ? 'נשמר' : 'הוסר מהשמורים'); };
     $('[data-a=add]', d).onclick = e => { if (!inRoute(s.p.id)) { addToRoute(s.p.id); toast(`${s.p.n} נוסף למסלול`); } e.currentTarget.innerHTML = icon('check') + '<span>במסלול</span>'; paintIcons(e.currentTarget); };

@@ -7,12 +7,17 @@ export function paintIcons(root = document) { window.lucide?.createIcons({ attrs
 
 /* image slot: <div class="ph" data-img> filled later */
 export function ph(cls = '', ratio) { return `<div class="ph ${cls}" ${ratio ? `style="aspect-ratio:${ratio}"` : ''}><div class="skel"></div></div>`; }
+// Wikimedia serves only standard thumbnail widths, so snap any older URL (e.g. from cache) to one.
+const WSTEPS = [120, 250, 330, 500, 960, 1280, 1920];
+const snap = u => /upload\.wikimedia\.org\/.*\/thumb\//.test(u) ? u.replace(/\/(\d+)px-/, (m, w) => `/${WSTEPS.find(s => s >= +w) || 1920}px-`) : u;
 export function fillPh(el, img) {
   if (!el) return;
+  if (img?.src) img = { ...img, src: snap(img.src), fb: img.fb && snap(img.fb) };
   if (!img?.src) { el.querySelector('.skel')?.remove(); el.classList.add('noimg'); return; }
   const i = new Image(); i.alt = ''; i.decoding = 'async'; i.loading = 'lazy'; i.referrerPolicy = 'no-referrer';
   i.onload = () => { i.classList.add('ld'); el.querySelector('.skel')?.remove(); };
-  i.onerror = () => { el.querySelector('.skel')?.remove(); i.remove(); };
+  // A failed image never leaves a black box: try the fallback size once, then show the empty pattern.
+  i.onerror = () => { if (img.fb && i.src !== img.fb) { i.src = img.fb; return; } el.querySelector('.skel')?.remove(); i.remove(); el.classList.add('noimg'); };
   i.src = img.src; el.prepend(i);
   if (img.credit) { const c = document.createElement(img.href ? 'a' : 'span'); c.className = 'credit'; c.textContent = img.credit; if (img.href) { c.href = img.href; c.target = '_blank'; c.rel = 'noopener'; } el.appendChild(c); }
 }

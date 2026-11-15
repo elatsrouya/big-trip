@@ -1,7 +1,7 @@
 import { S, save, replaceState, PM, C, onChange } from '../store.js';
 import { esc, icon, paintIcons, sheet, closeSheet, toast, $, $$, dot } from '../ui.js';
 import { usage, offInfo } from '../quota.js';
-import { GOOGLE_KEY, LIMITS } from '../config.js';
+import { GOOGLE_KEY, LIMITS, FREE } from '../config.js';
 import { openPlace } from './place.js';
 import { go } from '../router.js';
 import { syncWidget } from '../widget.js';
@@ -18,8 +18,9 @@ export function more(el) {
         <a class="li" href="#prep">${icon('list-checks')}<div class="grow">הכנות</div>${icon('chevron-left', 'chev')}</a>
         <button class="li" id="msaved">${icon('heart')}<div class="grow">שמורים</div><span class="tag">${likes.length}</span>${icon('chevron-left', 'chev')}</button>
       </div>
-      <h2>שימוש בגוגל היום</h2>
-      <div class="card" id="mq">${!GOOGLE_KEY ? '<div class="small muted">גוגל לא מחובר עדיין. המפה והתמונות מגיעות מ־OpenStreetMap ומוויקיפדיה, בחינם.</div>' : ''}
+      <h2>גוגל</h2>
+      <div class="list">
+        <button class="li" id="mq">${icon('gauge')}<div class="grow">שימוש מול המכסה החינמית<div class="xs muted">${quotaLine()}</div></div>${icon('chevron-left', 'chev')}</button>
       </div>
       <h2>ווידג׳ט, גיבוי והעברה</h2>
       <div class="list">
@@ -30,7 +31,7 @@ export function more(el) {
       <p class="xs muted" style="margin-top:18px">תמונות: ויקישיתוף (הקרדיט על כל תמונה), ויקיפדיה וגוגל. מפה: Google Maps או OpenStreetMap. טיפים מסומנים של מזרחניק (@mizrahnik) עם קישור לפוסט.</p>
     </div>`;
     paintIcons(el);
-    if (GOOGLE_KEY) meters($('#mq', el));
+    $('#mq', el).onclick = quotaSheet;
     $('#msaved', el).onclick = saved;
     $('#mwid', el).onclick = syncWidget;
     $('#mexp', el).onclick = async () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); try { await navigator.clipboard.writeText(code); toast('קוד הגיבוי הועתק'); } catch { sheet(`<h2>קוד גיבוי</h2><textarea style="min-height:160px;padding:10px" readonly>${code}</textarea>`); } };
@@ -39,10 +40,31 @@ export function more(el) {
   };
   draw(); return onChange(draw);
 }
-function meters(card) {
-  card.innerHTML = (offInfo() ? '<div class="note warn small" style="margin-bottom:10px">גוגל כבוי במכשיר הזה ל־24 שעות כי התקבלה שגיאה מגוגל. האפליקציה עובדת על מקורות חינמיים.</div>' : '')
-    + usage().map(u => `<div style="margin-bottom:12px"><div class="row between small"><span>${NAMES[u.sku]}</span><span class="num muted">היום ${u.day} מתוך ${u.day >= 0 ? LIMITS[u.sku].day : ''} · החודש ${u.month} מתוך ${LIMITS[u.sku].month}</span></div><div class="bar" style="height:6px;margin-top:6px"><i style="width:${Math.min(100, u.day / LIMITS[u.sku].day * 100)}%"></i></div></div>`).join('')
-    + '<div class="xs muted">המגבלות נמוכות מהמכסה החינמית של גוגל. כשמגיעים אליהן, האפליקציה עוברת למקורות חינמיים עד מחר.</div>';
+function quotaLine() {
+  if (!GOOGLE_KEY) return 'גוגל לא מחובר. הכל חינמי, 0 שימוש';
+  if (offInfo()) return 'כבוי ל־24 שעות אחרי שגיאה מגוגל';
+  const top = Math.max(...usage().map(u => u.month / FREE[u.sku]));
+  return `החודש ${Math.round(top * 100)}% מהמכסה החינמית, בשירות הכי מנוצל`;
+}
+function quotaSheet() {
+  const pct = (a, b) => Math.min(100, a / b * 100);
+  const rows = usage().map(u => { const L = LIMITS[u.sku], F = FREE[u.sku];
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="row between"><b>${NAMES[u.sku]}</b><span class="xs muted num">חינם עד ${F.toLocaleString('en')} בחודש</span></div>
+      <div class="row between small" style="margin-top:12px"><span>היום</span><span class="num">${u.day} / ${L.day}</span></div>
+      <div class="bar" style="height:6px;margin-top:4px"><i style="width:${pct(u.day, L.day)}%"></i></div>
+      <div class="row between small" style="margin-top:12px"><span>החודש</span><span class="num">${u.month} / ${L.month}</span></div>
+      <div class="bar" style="height:6px;margin-top:4px"><i style="width:${pct(u.month, L.month)}%"></i></div>
+      <div class="xs muted" style="margin-top:8px">${Math.round(pct(u.month, F))}% מהמכסה החינמית של גוגל · התקרה במכשיר ${Math.round(L.month / F * 100)}% ממנה</div>
+    </div>`; }).join('');
+  const body = sheet(`<h2 style="margin-top:4px">שימוש בגוגל</h2>
+    ${!GOOGLE_KEY ? '<div class="note small" style="margin-bottom:12px">גוגל עוד לא מחובר, אז אין שום שימוש. המפה והתמונות מגיעות כרגע מ־OpenStreetMap ומוויקישיתוף, בחינם.</div>' : ''}
+    ${offInfo() ? '<div class="note warn small" style="margin-bottom:12px">גוגל כבוי במכשיר הזה ל־24 שעות כי התקבלה שגיאה מגוגל. האפליקציה עובדת על מקורות חינמיים.</div>' : ''}
+    ${rows}
+    <div class="card" style="margin-bottom:12px"><div class="row between"><b>מפות מוטמעות בדף מקום</b><span class="xs muted">חינם ללא הגבלה</span></div></div>
+    <p class="xs muted">כל שורה מראה שימוש מול התקרה שהגדרתי במכשיר הזה. התקרות נמוכות בהרבה מהמכסה החינמית של גוגל, כך שגם שני מכשירים יחד נשארים בחינם. כשמגיעים לתקרה, האפליקציה עוברת למקורות חינמיים עד מחר או עד החודש הבא. הספירה היא של המכשיר הזה בלבד; הנתון המדויק לכל המכשירים נמצא ב־Google Cloud.</p>
+    <a class="btn ghost block" href="https://console.cloud.google.com/google/maps-apis/metrics" target="_blank" rel="noopener" style="margin-top:8px">${icon('external-link')} פתיחת Google Cloud</a>`);
+  paintIcons(body);
 }
 
 // Old app state (artifact) → new: same field names, so only drop what no longer exists.
