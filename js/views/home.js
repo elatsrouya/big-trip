@@ -14,7 +14,7 @@ export function home(el) {
     const monthsToGo = left > 0 ? left / 30.4 : 0; const perMonth = monthsToGo > 0 ? Math.max(0, (S.goal - S.saved) / monthsToGo) : 0;
     const w = warnings();
     const openTasks = TASKS.filter(t => !S.done[t.id] && (!t.when || t.when()));
-    const due = openTasks.map(t => ({ t, w: taskWhen(t) })).sort((a, b) => a.w.days - b.w.days)[0];
+    const due = openTasks.map(t => ({ t, w: taskWhen(t) })).sort((a, b) => S.startDate ? a.w.days - b.w.days : b.t.m - a.t.m)[0];
     const cur = currentStop();
     el.innerHTML = `<div class="view">
       <div class="vh"><div><h1>הטיול הגדול</h1><div class="sub">${s ? 'טיסה ב־' + dlong(s) : 'עוד לא נקבע תאריך'}</div></div>
