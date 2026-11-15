@@ -4,6 +4,7 @@ import { usage, offInfo } from '../quota.js';
 import { GOOGLE_KEY, LIMITS } from '../config.js';
 import { openPlace } from './place.js';
 import { go } from '../router.js';
+import { syncWidget } from '../widget.js';
 
 const NAMES = { map: 'טעינות מפה', details: 'פרטי מקום', search: 'חיפושים', photo: 'תמונות' };
 
@@ -20,8 +21,9 @@ export function more(el) {
       <h2>שימוש בגוגל היום</h2>
       <div class="card" id="mq">${!GOOGLE_KEY ? '<div class="small muted">גוגל לא מחובר עדיין. המפה והתמונות מגיעות מ־OpenStreetMap ומוויקיפדיה, בחינם.</div>' : ''}
       </div>
-      <h2>גיבוי והעברה</h2>
+      <h2>ווידג׳ט, גיבוי והעברה</h2>
       <div class="list">
+        <button class="li" id="mwid">${icon('smartphone')}<div class="grow">סנכרון לווידג׳ט<div class="xs muted">מעתיק את הנתונים, ואז לוחצים על הווידג׳ט במסך הבית</div></div></button>
         <button class="li" id="mexp">${icon('download')}<div class="grow">העתקת קוד גיבוי<div class="xs muted">המסלול, החיסכון והמשימות</div></div></button>
         <button class="li" id="mimp">${icon('upload')}<div class="grow">שחזור מקוד גיבוי<div class="xs muted">גם מהאפליקציה הקודמת</div></div></button>
       </div>
@@ -30,6 +32,7 @@ export function more(el) {
     paintIcons(el);
     if (GOOGLE_KEY) meters($('#mq', el));
     $('#msaved', el).onclick = saved;
+    $('#mwid', el).onclick = syncWidget;
     $('#mexp', el).onclick = async () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); try { await navigator.clipboard.writeText(code); toast('קוד הגיבוי הועתק'); } catch { sheet(`<h2>קוד גיבוי</h2><textarea style="min-height:160px;padding:10px" readonly>${code}</textarea>`); } };
     $('#mimp', el).onclick = () => { const body = sheet(`<h2 style="margin-top:4px">שחזור מקוד גיבוי</h2><p class="small muted">מדביקים את הקוד שהועתק מהאפליקציה. המצב הנוכחי יוחלף.</p><textarea id="ic" style="min-height:140px;padding:10px"></textarea><button class="btn block" id="iok" style="margin-top:12px">שחזור</button>`);
       $('#iok', body).onclick = () => { try { const obj = JSON.parse(decodeURIComponent(escape(atob($('#ic', body).value.trim())))); replaceState(migrate(obj)); closeSheet(); toast('השחזור הושלם'); } catch { toast('הקוד לא תקין'); } }; };

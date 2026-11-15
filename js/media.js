@@ -55,7 +55,7 @@ export async function gSearch(query, lat, lon, max = 12) {
     const gm = await loadGoogle(); const { Place } = await gm.importLibrary('places');
     const { places } = await Place.searchByText({
       textQuery: query, fields: ['id', 'displayName', 'location', 'photos', 'formattedAddress', 'googleMapsURI'],
-      maxResultCount: max, language: 'iw', ...(lat != null ? { locationBias: { lat, lng: lon } } : {}),
+      maxResultCount: max, language: 'en', ...(lat != null ? { locationBias: { lat, lng: lon } } : {}),
     });
     // Keep the photo objects in memory only; Google's terms do not allow storing them.
     const out = places.map(p => ({ id: p.id, title: p.displayName, addr: p.formattedAddress, lat: p.location?.lat(), lon: p.location?.lng(), url: p.googleMapsURI, _photos: p.photos || [] }));
@@ -74,6 +74,6 @@ export const canGooglePhoto = () => can('photo');
 export const gmaps = q => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 // The Maps Embed API is free with no usage limit, so it never touches the quota.
 export function embedUrl(q, lat, lon) {
-  if (GOOGLE_KEY && googleOn()) return `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_KEY}&q=${encodeURIComponent(q)}&language=iw&zoom=12`;
+  if (GOOGLE_KEY && googleOn()) return `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_KEY}&q=${encodeURIComponent(q)}&language=en&zoom=12`;
   const d = .08; return `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d},${lat - d},${lon + d},${lat + d}&layer=mapnik&marker=${lat},${lon}`;
 }

@@ -15,7 +15,7 @@ export function loadGoogle() {
   return gPromise ||= new Promise((res, rej) => {
     window.__gmReady = () => res(window.google.maps);
     window.gm_authFailure = () => { trip('auth'); rej('auth'); };
-    script(`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}&v=weekly&language=iw&region=IL&loading=async&callback=__gmReady`).catch(rej);
+    script(`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}&v=weekly&language=en&region=IL&loading=async&callback=__gmReady`).catch(rej);
   });
 }
 const ML = 'vendor/maplibre-gl';
@@ -46,9 +46,10 @@ export async function createMap(el, { center = [16, 102], zoom = 4 } = {}) {
   map.touchZoomRotate.disableRotation();
   map.addControl(new ml.NavigationControl({ showCompass: false }), 'bottom-left');
   map.addControl(new ml.AttributionControl({ compact: true }), 'bottom-right');
+  // English labels: MapLibre draws Hebrew mirrored without an extra RTL plugin.
   map.on('styledata', () => {
     for (const l of map.getStyle().layers) if (l.type === 'symbol' && l.layout?.['text-field']) {
-      try { map.setLayoutProperty(l.id, 'text-field', ['coalesce', ['get', 'name:he'], ['get', 'name:en'], ['get', 'name']]); } catch {}
+      try { map.setLayoutProperty(l.id, 'text-field', ['coalesce', ['get', 'name:en'], ['get', 'name_en'], ['get', 'name:latin'], ['get', 'name']]); } catch {}
     }
   });
   const ready = new Promise(r => map.on('load', r));

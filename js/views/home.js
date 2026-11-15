@@ -4,6 +4,7 @@ import { placePhotos, wiki } from '../media.js';
 import { openPlace } from './place.js';
 import { go } from '../router.js';
 import { taskWhen, TASKS } from './prep.js';
+import { syncWidget } from '../widget.js';
 
 export function home(el) {
   const draw = () => {
@@ -77,6 +78,9 @@ export function editTrip() {
       <div><label class="f" for="fs">כמה חסכתי (₪)</label><input id="fs" type="number" inputmode="numeric" value="${S.saved}"></div>
       <div><label class="f" for="fg">יעד חיסכון (₪)</label><input id="fg" type="number" inputmode="numeric" value="${S.goal}"></div>
     </div>
-    <button class="btn block" id="fok" style="margin-top:18px">שמירה</button>`);
+    <button class="btn block" id="fok" style="margin-top:20px">שמירה</button>
+    <button class="btn sec block" id="fwid" style="margin-top:8px">שמירה וסנכרון לווידג׳ט</button>`);
+  const apply = () => { S.startDate = $('#fd', body).value; S.saved = Math.max(0, +$('#fs', body).value || 0); S.goal = Math.max(0, +$('#fg', body).value || 0); save(); };
+  $('#fwid', body).onclick = async () => { apply(); closeSheet(); await syncWidget(); };
   $('#fok', body).onclick = () => { S.startDate = $('#fd', body).value; S.saved = Math.max(0, +$('#fs', body).value || 0); S.goal = Math.max(0, +$('#fg', body).value || 0); save(); closeSheet(); toast('נשמר'); };
 }
