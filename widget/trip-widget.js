@@ -7,10 +7,8 @@ const SITE = "https://elatsrouya.github.io/big-trip/";
 const KEY = "trip-widget-data-v2";
 
 // ---------- colors (same as the site) ----------
-const dark = Device.isUsingDarkAppearance();
-const COL = dark
-  ? { bg: "#161513", card: "#211f1c", ink: "#efe9de", ink2: "#aaa398", ink3: "#8a847a", line: "#2e2b27", acc: "#e0775c" }
-  : { bg: "#f8f7f4", card: "#ffffff", ink: "#1f1b16", ink2: "#5e554a", ink3: "#7b7266", line: "#e6e2da", acc: "#b4412a" };
+// Always dark: black background, light text.
+const COL = { bg: "#000000", card: "#1c1a18", ink: "#efe9de", ink2: "#aaa398", ink3: "#8a847a", line: "#2e2b27", acc: "#e0775c" };
 const c = h => new Color(h);
 
 // ---------- sync: read the clipboard when the widget is tapped ----------
@@ -87,7 +85,7 @@ function routeLine(st, w, stops, active) {
     const on = i === active;
     const p = new Path(); p.addEllipse(new Rect(x - r, h / 2 - r, 2 * r, 2 * r)); ctx.addPath(p); ctx.setFillColor(c(on ? COL.acc : COL.bg)); ctx.fillPath();
     ctx.addPath(p); ctx.setStrokeColor(c(COL.acc)); ctx.setLineWidth(2); ctx.strokePath();
-    ctx.setFont(Font.mediumSystemFont(10)); ctx.setTextColor(c(on ? "#ffffff" : COL.acc)); ctx.setTextAlignedCenter();
+    ctx.setFont(Font.mediumSystemFont(10)); ctx.setTextColor(c(on ? "#000000" : COL.acc)); ctx.setTextAlignedCenter();
     ctx.drawTextInRect(String(i + 1), new Rect(x - r, h / 2 - 7, 2 * r, 14));
   });
   const img = st.addImage(ctx.getImage()); img.imageSize = new Size(w, h);
