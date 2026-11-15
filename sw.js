@@ -1,6 +1,6 @@
 // Offline support: the app shell is cached (network first, so updates arrive),
 // free images from Wikimedia/Wikipedia are cached after first view. Google content is never cached.
-const V = 'bt-v9';
+const V = 'bt-v10';
 const IMG = 'bt-img2'; // the old image cache could hold failed responses, so it is dropped
 const SHELL = ['./', 'index.html', 'css/app.css', 'manifest.webmanifest', 'js/app.js', 'js/config.js', 'js/data.js', 'js/store.js', 'js/quota.js', 'js/maps.js', 'js/media.js', 'js/ui.js', 'js/router.js',
   'js/views/home.js', 'js/views/route.js', 'js/views/place.js', 'js/views/discover.js', 'js/views/budget.js', 'js/views/calendar.js', 'js/views/countries.js', 'js/views/prep.js', 'js/views/more.js', 'js/widget.js', 'icons/icon-192.png', 'vendor/lucide.min.js', 'vendor/maplibre-gl.js', 'vendor/maplibre-gl.css'];

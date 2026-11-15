@@ -9,7 +9,7 @@ export function paintIcons(root = document) { window.lucide?.createIcons({ attrs
 export function ph(cls = '', ratio) { return `<div class="ph ${cls}" ${ratio ? `style="aspect-ratio:${ratio}"` : ''}><div class="skel"></div></div>`; }
 // Wikimedia serves only standard thumbnail widths, so snap any older URL (e.g. from cache) to one.
 const WSTEPS = [120, 250, 330, 500, 960, 1280, 1920];
-const snap = u => /upload\.wikimedia\.org\/.*\/thumb\//.test(u) ? u.replace(/\/(\d+)px-/, (m, w) => `/${WSTEPS.find(s => s >= +w) || 1920}px-`) : u;
+const snap = u => /wikimedia\.org\/.*\/\d+px-/.test(u) ? u.replace(/\/(\d+)px-/, (m, w) => `/${WSTEPS.find(s => s >= +w) || 1920}px-`) : u;
 export function fillPh(el, img) {
   if (!el) return;
   if (img?.src) img = { ...img, src: snap(img.src), fb: img.fb && snap(img.fb) };
